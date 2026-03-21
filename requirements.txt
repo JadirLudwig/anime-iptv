@@ -11,5 +11,5 @@ python-multipart==0.0.9
 beautifulsoup4==4.12.3
 lxml==5.1.0
 pyngrok==7.1.5
-anyio==3.6.2
-starlette==0.27.0
+anyio<4.0.0
+starlette==0.26.1
