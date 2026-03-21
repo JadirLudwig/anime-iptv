@@ -111,7 +111,7 @@ async def delete_anime(anime_id: int, db: Session = Depends(get_db)):
 
 
 @app.get("/stream/{episode_id}")
-async def get_stream(episode_id: int, db: Session = Depends(get_db)):
+async def get_stream(episode_id: int, request: Request, db: Session = Depends(get_db)):
     ep = db.query(Episode).filter(Episode.id == episode_id).first()
     if not ep:
         raise HTTPException(status_code=404, detail="Episode not found")

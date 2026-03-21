@@ -20,7 +20,7 @@ class EpisodeResponse(BaseModel):
     last_checked: datetime
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 class AnimeResponse(BaseModel):
     id: int
@@ -32,4 +32,4 @@ class AnimeResponse(BaseModel):
     episodes: List[EpisodeResponse] = []
 
     class Config:
-        from_attributes = True
+        orm_mode = True
