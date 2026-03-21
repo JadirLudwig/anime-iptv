@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime IPTV - Web Player</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- HLS.js for m3u8 playback -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="overlay-bg"></div>
+    <div class="container">
+        <header style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h1><span class="highlight">Anime</span> Tracker & Player</h1>
+                <p>Ngrok Enabled • External Access Ready • Internal HLS Web Player</p>
+            </div>
+            <a href="/" style="text-decoration:none; color:var(--primary); font-weight:800; border:2px solid var(--primary); padding: 8px 15px; border-radius: 6px;">🏠 VOLTAR AO SITE</a>
+        </header>
+
+        <div class="top-row">
+            <section class="add-section glass-panel">
+                <h2>Track New Anime</h2>
+                <form id="addAnimeForm">
+                    <input type="url" id="targetUrl" placeholder="https://animesonlinecc.to/anime/..." required />
+                    <button type="submit" class="btn-primary">Track</button>
+                </form>
+            </section>
+        </div>
+
+        <div class="main-content">
+            <section class="list-section glass-panel">
+                <h2>Animes Trackeados <button id="refreshListBtn" class="btn-icon">🔃</button></h2>
+                <div class="table-container">
+                    <table id="animeTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Episodes</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="animeListBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="episodes-section glass-panel" id="episodesPanel" style="display: none;">
+                <h2>Episodes: <span id="selectedAnimeName">-</span></h2>
+                <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                    <table id="episodeTable">
+                        <thead>
+                            <tr>
+                                <th>Ep</th>
+                                <th>Status</th>
+                                <th>Play</th>
+                            </tr>
+                        </thead>
+                        <tbody id="episodeListBody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <section class="player-section glass-panel" id="playerPanel" style="display: none; margin-top: 2rem;">
+            <h2>Now Playing: <span id="nowPlayingTitle" class="highlight">-</span></h2>
+            <div class="video-container">
+                <video id="internalPlayer" controls></video>
+                <div id="playerPlaceholder" class="placeholder show">Loading stream proxy...</div>
+            </div>
+        </section>
+    </div>
+    
+    <div id="toast" class="toast hidden"></div>
+    <script src="/static/admin.js"></script>
+</body>
+</html>

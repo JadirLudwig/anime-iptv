@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  app:
+    image: bannemage/animeflix:v1.2
+    container_name: animeflix-app
+    restart: unless-stopped
+    ports:
+      - "8080:8000"
+    volumes:
+      - ./data:/data
+      - ./logs:/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DB_PATH=/data/anime.db
+      - LOG_DIR=/logs
+      # Substitua o campo abaixo pelo seu token real do Ngrok
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN:-seu_token_aqui}

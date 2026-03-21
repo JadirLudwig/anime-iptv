@@ -1,0 +1,16 @@
+{
+  "name": "AnimeFix - IPTV",
+  "short_name": "AnimeFix",
+  "description": "Seus animes favoritos em um só lugar.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#141414",
+  "theme_color": "#E50914",
+  "icons": [
+    {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/7/75/Netflix_icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnimeFix - Seus Animes em um só lugar</title>
+    <link rel="stylesheet" href="/static/netflix.css">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- PWA Setup -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#E50914">
+</head>
+<body>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js');
+        }
+    </script>
+    <nav class="navbar" id="navbar">
+        <div class="logo">AnimeFix</div>
+        <div class="nav-links">
+            <a href="#" class="nav-item">Home</a>
+            <a href="#" class="nav-item">Séries</a>
+            <a href="#" class="nav-item">Filmes</a>
+            <a href="#" class="nav-item">Bombando</a>
+            <a href="/static/admin.html" class="nav-item" style="color:var(--netflix-red)">Admin</a>
+            <div class="nav-item"><i class="ph ph-magnifying-glass" style="font-size:1.4rem"></i></div>
+            <div class="nav-item"><i class="ph ph-bell" style="font-size:1.4rem"></i></div>
+        </div>
+    </nav>
+
+    <div class="hero" id="hero" style="background-image: url('https://images.alphacoders.com/132/1322308.jpeg')">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title" id="heroTitle">Seus animes favoritos</h1>
+            <p class="hero-synopsis" id="heroSynopsis" style="margin-bottom: 25px; line-height: 1.5; color: #ddd; max-width: 500px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;"></p>
+            <div class="hero-btns">
+                <button class="btn btn-primary" onclick="playRandom()"><i class="ph ph-play-fill"></i> Assistir</button>
+                <button class="btn btn-secondary" onclick="showRandomInfo()"><i class="ph ph-info"></i> Mais Informações</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" id="continueWatchingRow" style="display: none;">
+        <h2 class="row-title">Continuar Assistindo</h2>
+        <div class="anime-grid" id="continueGrid">
+            <!-- Continuous items -->
+        </div>
+    </div>
+
+    <div class="row">
+        <h2 class="row-title">Adicionados Recentemente</h2>
+        <div class="anime-grid" id="recentGrid">
+            <!-- Recent anime cards -->
+        </div>
+    </div>
+
+    <div class="row">
+        <h2 class="row-title">Nossa Lista</h2>
+        <div class="anime-grid" id="animeGrid">
+            <!-- All anime cards -->
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div class="modal" id="detailsModal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeModalBtn"><i class="ph ph-x"></i></button>
+            <div class="modal-header" id="modalHeaderBanner"></div>
+            <div class="modal-body">
+                <h2 id="modalAnimeTitle" style="font-size: 2.5rem; margin-bottom: 10px;"></h2>
+                <div id="modalAnimeMeta" style="color:var(--text-muted); margin-bottom: 15px; font-size: 0.9rem;"></div>
+                <p id="modalAnimeSynopsis" style="margin-bottom: 30px; line-height: 1.6; color: #ccc;"></p>
+                
+                <div id="seasonGroups" class="season-groups">
+                    <!-- Season groups and episodes will be injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Player Panel -->
+    <div class="player-panel" id="playerPanel">
+        <div class="player-close" id="closePlayerBtn"><i class="ph ph-arrow-left"></i></div>
+        <div id="videoContainer" style="width:100%; height:100%">
+            <video id="videoPlayer" controls autoplay></video>
+        </div>
+    </div>
+
+    <script src="/static/netflix.js"></script>
+</body>
+</html>
