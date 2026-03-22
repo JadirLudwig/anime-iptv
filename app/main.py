@@ -35,6 +35,16 @@ async def lifespan(app: FastAPI):
         import os
         from pyngrok import ngrok, conf
         
+        # Detect Termux and use its system-installed ngrok
+        is_termux = "COM_TERMUX" in os.environ or "PREFIX" in os.environ
+        if is_termux:
+            termux_ngrok_path = "/data/data/com.termux/files/usr/bin/ngrok"
+            if os.path.exists(termux_ngrok_path):
+                conf.get_default().ngrok_path = termux_ngrok_path
+                logger.info("Using Termux system ngrok...")
+            else:
+                logger.warning("Termux ngrok binary not found at default path. Please run 'pkg install ngrok'.")
+
         ngrok_token = os.getenv("NGROK_AUTHTOKEN")
         if ngrok_token:
             ngrok.set_auth_token(ngrok_token)
