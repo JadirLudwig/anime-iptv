@@ -35,33 +35,36 @@ async def lifespan(app: FastAPI):
         import os
         import subprocess
         import shutil
-        from pyngrok import ngrok
-        
         ngrok_token = os.getenv("NGROK_AUTHTOKEN")
         ngrok_bin = shutil.which("ngrok")
 
-        # If ngrok exists as a system command and we are likely on Termux/Mobile
-        # We check for 'not ngrok_bin.startswith("/usr")' or similar, but the safest 
-        # is to try the library and fallback to the binary.
-        
-        try:
-            # Try official library first (Works on PC)
+        # Fallback to system binary (Works on Termux)
+        if ngrok_bin and (not os.name == 'nt' and not os.uname().sysname == 'Darwin'):
+            # On non-Windows/Mac (like Android/Linux), we prefer subprocess if library might be unstable
+            logger.info(f"Using system ngrok at {ngrok_bin}...")
             if ngrok_token:
-                ngrok.set_auth_token(ngrok_token)
-            ngrok_tunnel = ngrok.connect(8000)
-            logger.info(f"*** NGROK TUNNEL ACTIVE: {ngrok_tunnel.public_url} ***")
-        except Exception as lib_e:
-            # Fallback to system binary (Works on Termux)
-            if ngrok_bin and ("android" in str(lib_e).lower() or "platform" in str(lib_e).lower()):
-                logger.info(f"Using system ngrok at {ngrok_bin}...")
+                subprocess.run([ngrok_bin, "config", "add-authtoken", ngrok_token], capture_output=True)
+            
+            subprocess.Popen([ngrok_bin, "http", "8000"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            logger.info("*** NGROK STARTED VIA SUBPROCESS ***")
+            logger.info("Access the Ngrok dashboard at http://localhost:4040 to see your public URL")
+        else:
+            try:
+                from pyngrok import ngrok
+                # Try official library first (Works on PC)
                 if ngrok_token:
-                    subprocess.run([ngrok_bin, "config", "add-authtoken", ngrok_token], capture_output=True)
-                
-                subprocess.Popen([ngrok_bin, "http", "8000"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                logger.info("*** NGROK STARTED VIA SUBPROCESS ***")
-                logger.info("Access the Ngrok dashboard at http://localhost:4040 to see your public URL")
-            else:
-                logger.warning(f"Ngrok connection skipped: {lib_e}")
+                    ngrok.set_auth_token(ngrok_token)
+                ngrok_tunnel = ngrok.connect(8000)
+                logger.info(f"*** NGROK TUNNEL ACTIVE: {ngrok_tunnel.public_url} ***")
+            except Exception as lib_e:
+                logger.warning(f"Ngrok library failed: {lib_e}. Trying subprocess fallback...")
+                if ngrok_bin:
+                    if ngrok_token:
+                        subprocess.run([ngrok_bin, "config", "add-authtoken", ngrok_token], capture_output=True)
+                    subprocess.Popen([ngrok_bin, "http", "8000"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    logger.info("*** NGROK STARTED VIA SUBPROCESS FALLBACK ***")
+                else:
+                    logger.warning("No ngrok binary found for fallback.")
 
     except Exception as e:
         logger.warning(f"Ngrok setup error: {e}")
