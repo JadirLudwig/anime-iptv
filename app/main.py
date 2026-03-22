@@ -34,29 +34,37 @@ async def lifespan(app: FastAPI):
     try:
         import os
         import subprocess
+        import shutil
         from pyngrok import ngrok
         
         ngrok_token = os.getenv("NGROK_AUTHTOKEN")
-        is_termux = "PREFIX" in os.environ or "COM_TERMUX" in os.environ
+        ngrok_bin = shutil.which("ngrok")
 
-        if is_termux:
-            logger.info("Termux detected. Starting ngrok via system command...")
-            if ngrok_token:
-                subprocess.run(["ngrok", "config", "add-authtoken", ngrok_token], capture_output=True)
-            
-            # Start ngrok and leave it running in background
-            subprocess.Popen(["ngrok", "http", "8000"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            logger.info("*** NGROK STARTED ***")
-            logger.info("Check your public URL at: http://localhost:4040")
-        else:
-            # PC Standard flow
+        # If ngrok exists as a system command and we are likely on Termux/Mobile
+        # We check for 'not ngrok_bin.startswith("/usr")' or similar, but the safest 
+        # is to try the library and fallback to the binary.
+        
+        try:
+            # Try official library first (Works on PC)
             if ngrok_token:
                 ngrok.set_auth_token(ngrok_token)
             ngrok_tunnel = ngrok.connect(8000)
             logger.info(f"*** NGROK TUNNEL ACTIVE: {ngrok_tunnel.public_url} ***")
+        except Exception as lib_e:
+            # Fallback to system binary (Works on Termux)
+            if ngrok_bin and ("android" in str(lib_e).lower() or "platform" in str(lib_e).lower()):
+                logger.info(f"Using system ngrok at {ngrok_bin}...")
+                if ngrok_token:
+                    subprocess.run([ngrok_bin, "config", "add-authtoken", ngrok_token], capture_output=True)
+                
+                subprocess.Popen([ngrok_bin, "http", "8000"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                logger.info("*** NGROK STARTED VIA SUBPROCESS ***")
+                logger.info("Access the Ngrok dashboard at http://localhost:4040 to see your public URL")
+            else:
+                logger.warning(f"Ngrok connection skipped: {lib_e}")
 
     except Exception as e:
-        logger.warning(f"Ngrok setup bypassed or failed: {e}")
+        logger.warning(f"Ngrok setup error: {e}")
         
     yield
     
