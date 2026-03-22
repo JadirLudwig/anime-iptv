@@ -34,61 +34,29 @@ async def lifespan(app: FastAPI):
     try:
         import os
         import subprocess
-        import time
-        from pyngrok import ngrok, conf
+        from pyngrok import ngrok
         
         ngrok_token = os.getenv("NGROK_AUTHTOKEN")
-        
-        def start_ngrok_subprocess():
-            logger.info("Attempting to start ngrok via system subprocess (Termux fallback)...")
+        is_termux = "PREFIX" in os.environ or "COM_TERMUX" in os.environ
+
+        if is_termux:
+            logger.info("Termux detected. Starting ngrok via system command...")
             if ngrok_token:
                 subprocess.run(["ngrok", "config", "add-authtoken", ngrok_token], capture_output=True)
             
+            # Start ngrok and leave it running in background
             subprocess.Popen(["ngrok", "http", "8000"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            time.sleep(3)
-            
-            # Try to get the public URL from ngrok's local API
-            try:
-                import httpx
-                import asyncio
-                async def get_url():
-                    async with httpx.AsyncClient() as client:
-                        resp = await client.get("http://127.0.0.1:4040/api/tunnels", timeout=2)
-                        if resp.status_code == 200:
-                            data = resp.json()
-                            return data['tunnels'][0]['public_url']
-                    return None
-                
-                # Try a few times
-                for _ in range(5):
-                    url = asyncio.run(get_url()) if not asyncio.get_event_loop().is_running() else None # Simplified for sync main
-                    if url:
-                        logger.info(f"*** NGROK TUNNEL ACTIVE: {url} ***")
-                        return True
-                    time.sleep(1)
-            except Exception as e:
-                logger.warning(f"Could not retrieve Ngrok URL: {e}. Check 'http://127.0.0.1:4040' on your phone.")
-            return False
-
-        try:
-            # Try official library first (PC)
+            logger.info("*** NGROK STARTED ***")
+            logger.info("Check your public URL at: http://localhost:4040")
+        else:
+            # PC Standard flow
             if ngrok_token:
                 ngrok.set_auth_token(ngrok_token)
             ngrok_tunnel = ngrok.connect(8000)
             logger.info(f"*** NGROK TUNNEL ACTIVE: {ngrok_tunnel.public_url} ***")
-        except Exception as lib_e:
-            # If library fails (common on Android/Termux), try subprocess
-            if "android" in str(lib_e).lower() or "platform" in str(lib_e).lower():
-                if not start_ngrok_subprocess():
-                    logger.error("Failed to start ngrok even via subprocess.")
-            else:
-                logger.error(f"Failed to start ngrok tunnel via library: {lib_e}")
-                # Try fallback anyway if on Termux
-                if os.path.exists("/data/data/com.termux/files/usr/bin/ngrok"):
-                    start_ngrok_subprocess()
 
     except Exception as e:
-        logger.error(f"Fatal error during ngrok setup: {e}")
+        logger.warning(f"Ngrok setup bypassed or failed: {e}")
         
     yield
     
