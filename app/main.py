@@ -33,25 +33,51 @@ async def lifespan(app: FastAPI):
     # Setup Ngrok
     try:
         import os
+        import subprocess
+        import time
         from pyngrok import ngrok, conf
         
-        # Detect Termux and use its system-installed ngrok
+        # Detect Termux
         is_termux = "COM_TERMUX" in os.environ or "PREFIX" in os.environ
-        if is_termux:
-            termux_ngrok_path = "/data/data/com.termux/files/usr/bin/ngrok"
-            if os.path.exists(termux_ngrok_path):
-                conf.get_default().ngrok_path = termux_ngrok_path
-                logger.info("Using Termux system ngrok...")
-            else:
-                logger.warning("Termux ngrok binary not found at default path. Please run 'pkg install ngrok'.")
-
         ngrok_token = os.getenv("NGROK_AUTHTOKEN")
-        if ngrok_token:
-            ngrok.set_auth_token(ngrok_token)
+        
+        if is_termux:
+            logger.info("Termux detected. Starting ngrok via subprocess...")
+            # Use subprocess to bypass pyngrok's platform check
+            env = os.environ.copy()
+            if ngrok_token:
+                subprocess.run(["ngrok", "config", "add-authtoken", ngrok_token], capture_output=True)
             
-        ngrok_tunnel = ngrok.connect(8000)
-        logger.info(f"*** NGROK TUNNEL ACTIVE: {ngrok_tunnel.public_url} ***")
-        logger.info(f"Access your dashboard anywhere using: {ngrok_tunnel.public_url}")
+            # Start ngrok in background
+            proc = subprocess.Popen(
+                ["ngrok", "http", "8000"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+            # Give it a moment to start
+            time.sleep(2)
+            
+            # Try to get the public URL from ngrok's local API
+            try:
+                import httpx
+                for _ in range(5):
+                    async with httpx.AsyncClient() as client:
+                        resp = await client.get("http://127.0.0.1:4040/api/tunnels", timeout=2)
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            public_url = data['tunnels'][0]['public_url']
+                            logger.info(f"*** NGROK TUNNEL ACTIVE: {public_url} ***")
+                            break
+                    time.sleep(1)
+            except:
+                logger.warning("Could not automatically retrieve Ngrok URL. Check 'http://127.0.0.1:4040' on your phone.")
+        else:
+            # Standard pyngrok for PC
+            if ngrok_token:
+                ngrok.set_auth_token(ngrok_token)
+            ngrok_tunnel = ngrok.connect(8000)
+            logger.info(f"*** NGROK TUNNEL ACTIVE: {ngrok_tunnel.public_url} ***")
+            
     except Exception as e:
         logger.error(f"Failed to start ngrok tunnel: {e}")
         
