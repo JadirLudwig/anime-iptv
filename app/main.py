@@ -38,7 +38,11 @@ async def lifespan(app: FastAPI):
         from pyngrok import ngrok, conf
         
         # Detect Termux
-        is_termux = "COM_TERMUX" in os.environ or "PREFIX" in os.environ
+        is_termux = (
+            "COM_TERMUX" in os.environ or 
+            "PREFIX" in os.environ or 
+            os.path.exists("/data/data/com.termux/files/usr/bin/ngrok")
+        )
         ngrok_token = os.getenv("NGROK_AUTHTOKEN")
         
         if is_termux:
