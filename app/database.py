@@ -2,7 +2,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DB_PATH = os.getenv("DB_PATH", "/data/anime.db")
+DB_PATH = os.getenv("DB_PATH", "anime.db")
 # For local running outside docker, ensure dir exists or use local file
 if not DB_PATH.startswith("/"):
     DB_PATH = os.path.join(os.path.dirname(__file__), "..", DB_PATH)
